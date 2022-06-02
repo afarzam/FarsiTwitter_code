@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon May 30 00:17:58 2022
+Created on Thu Jun  2 15:59:32 2022
 
-Descryption: Decrypting the tweet IDs
 
-@author: Amirhossein Farzam
+Descryption: Decrypting the user IDs for getting the CAPs
+
+@author: Amirhossein farzam
 """
+
 
 import os
 import sys
@@ -52,25 +54,25 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     
     
-    parser.add_argument('-i', '--input', nargs=1, type=str, required=False, default="encrypted_tweetIDs_byTopic.json",
-                        help="(str) : input file including a dictionary of encrypted tweet IDs by topic" \
-                             + " --- default is './encrypted_tweetIDs_byTopic.json'")
-    parser.add_argument('-o', '--output', nargs=1, type=str, required=False, default="tweetIDs_byTopic.json",
+    parser.add_argument('-i', '--input', nargs=1, type=str, required=False, default="encrypted_caps_byTopic.json",
+                        help="(str) : input file including a dictionary of encrypted user IDs with CAPs by topic" \
+                             + " --- default is './encrypted_caps_byTopic.json'")
+    parser.add_argument('-o', '--output', nargs=1, type=str, required=False, default="caps_byTopic.json",
                         help="(str) : output file to store a dictionary of tweet IDs by topic" \
-                             + " --- default is './tweetIDs_byTopic.json'")
+                             + " --- default is './caps_byTopic.json'")
     parser.add_argument('-t', '--topics', nargs='+', type=str, required=False,
                         help='(str) : topics to decrypt tweet IDs for' \
                              + '--- if not provided, it will decrypt for all topics, i.e. all keys in the input file')
-    parser.add_argument('-k', '--key', nargs=1, type=str, required=False, default="./tids_enc_key",
+    parser.add_argument('-k', '--key', nargs=1, type=str, required=False, default="./caps_enc_key",
                         help="(str) : the file containing the encrypted symmetric key for decryption"\
-                             + " - default is './tids_enc_key'")
-    parser.add_argument('-p', '--priv_key', nargs=1, type=str, required=False, default="./tids_private_key",
+                             + " - default is './caps_enc_key'")
+    parser.add_argument('-p', '--priv_key', nargs=1, type=str, required=False, default="./caps_private_key",
                         help="(str) : the file containing the private key for decrypted the encrypted symmetric key" \
-                             + " - default is './tids_private_key'")
+                             + " - default is './caps_private_key'")
 
 
     args = parser.parse_args()
-    print("\n\n Decrypting and saving tweet IDs ... " \
+    print("\n\n Decrypting and saving users IDs with CAPs ... " \
            + "\n  for the following arguments:\n   " \
            + str(args) + "\n")
     
@@ -99,20 +101,20 @@ if __name__ == '__main__':
 #%% --------- loading the dictionary, decrypting, and exporting ---------
     
     with open(args.input[0], 'r') as fin:
-        enc_tweetIDs = json.load(fin)
-        print("\nDictionary of encrypted tweet IDs by topics loaded from %s\n" % args.input[0])
+        enc_topics_caps = json.load(fin)
+        print("\nDictionary of encrypted users IDs with CAPS by topics loaded from %s\n" % args.input[0])
     
     if (args.topics == None):
-        topics = list(enc_tweetIDs.keys())
-    else:
+        topics = list(enc_topics_caps.keys())
+    else:C
         topics = args.topics
-        
+
     print("\nDecrypting for topic...\n")
-    topics_tweetIDs = dict()
+    topics_caps = dict()
     for topic_ind, topic in enumerate(topics):
-        tweet_IDs = enc_tweetIDs[topic]
-        topics_tweetIDs[topic] = [fernet.decrypt(tid.encode('utf-8')).decode()
-                                  for tid in tweet_IDs]
+        uid_cap = enc_topics_caps[topic]
+        topics_caps[topic] = [(fernet.decrypt(uid.encode('utf-8')).decode(), cap)
+                              for (uid, cap) in uid_cap]
         
         progressBar(topic_ind+1, len(topics), 
                     optional_message="  " + topic + "  ")
@@ -121,8 +123,8 @@ if __name__ == '__main__':
     #% ---
     
     with open(args.output[0], 'w') as fout:
-        json.dump(topics_tweetIDs, fout)
-        print("\nDictionary of tweet IDs by topics saved in %s\n" % args.output[0])
+        json.dump(topics_caps, fout)
+        print("\nDictionary of users IDs with CAPS by topics saved in %s\n" % args.output[0])
 
 
 
